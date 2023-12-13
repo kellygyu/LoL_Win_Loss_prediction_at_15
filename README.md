@@ -1,7 +1,7 @@
-# Are Meta Champions Truly Broken?
+# FF Angle -- Is it over?
 
 ## Project Overview
-The following project was completed for DSC80 at UCSD. This project aims to investigate the difference in winrate and performance of heavily banned champions vs other champions within league of legends tournaments.
+The following project was completed for DSC80 at UCSD. This project aims to create a prediction model to determine the outcome of professional leauge matches given the data collected 15 minutes into a game.
 
 **Author**: Kelly Yu
 
@@ -11,46 +11,74 @@ Throughout this project, I will be using some jargon particular to League of Leg
 | Jargon | Definition |
 |:-----------:|:-----------:|
 | Champion | characters you play as in game |
-| Meta | describes whether a champion is popular |
-| KDA | calculated metric that describes a player's performance in game base off kills, deaths, and assists|
+| Lead | being ahead of an opponent, such as having more resources |
+| Snowball | increasing the lead a team has against the other team |
+| XP | experience points -- a measurement of player progression within the game |
+| Objectives | game quests, such as slaying a dragon, which can reward your team with gold or buffs |
 
-## Background
-League of Legends is a game purely focused on game understanding, champion mastery, macro/micro gameplay, and teamwork. There are currently over 152 champions as of 2022, each with their own skillsets and playstyles. In professional matches, a team's chance of winning is not only heavily dependent on the champions they select, but also the champions they ban from the game, which reduces their enemy's ability to play such champions. Banning certain champions could heavily increase a team's winrate multiple ways, for example, banning strong champions could reduce a team's chance of losing lane due to having to play against a "broken" champion. 
+## Background and Problem Identification
+League of Legends is a game purely focused on game understanding, champion mastery, macro/micro gameplay, acquiring objectives, and teamwork. A game's result is determined by a multitude of factors such as strategy, objectives, resources, kills, xp, and gold differences between both teams. If by chance a team obtains a lead in any of these categories, they will have a chance to snowball and ultimately win the game. In League of Legends, games tend to last between 25-40 minutes, and a majority of objectives can be acquired pre-15 minute mark. Game objectives help teams create a gap between them and their opponent as these objectives tend to grant gold bonuses or buffs to teams. 
 
-With each season, we tend to see the same champions being banned in profession league matches, as generally these champions are known to be part of a meta, or just have great utility for teamfights overall. Therefore, in this project, we will explore whether the top most banned champions truly have a higher win rate and performance distribution compared to the rest of the champion pool. 
+Players can usually tell which team is ahead and likely to win by the objectives taken and kills within the first 15 minutes. Additionally, League of Legends also has a surrender option, also known as the term 'ff'. Teams will typically try to ff if they think a game is unwinnable, and would like to save time and hop into the next game rather than play the current game out. The earliest a team can ff or forfeit the game is 15 minutes into the game. Hence for this project, we will try to predict the outcome of a game based off of team metrics 15 minutes into each game. This model will help players understand when a game can be considered as truly lost and save players from playing a lost game, or if there is a slim chance at a miracle comeback victory. 
+
+### Model Formation and Explaination
+To create this model, we will be using a binary classification method as our response variable, `result`, is a binary column of 1's and 0's to represent the outcome of a game -- win or loss. We will start off with Decision Tree Classification, and alter the model after. For our model evaluation metric, we will be using *Accuracy* as our metric of choice. Why Accuracy? Within our dataset, for each game, we have data from the red and blue team. Therefore, each game will always have a winner and loser, 1 and 0, hence the number of wins in our dataset should always equal the number of losses within our dataset. This means that our datset will not have any class imbalance between the number of wins and losses, hence accuracy will work well as a metric here as there is no cavaet (class imbalance) to skew the metric.
 
 ### Dataset Explaination
-The dataset we will be using will be from Oracle's Elixir. The dataset itself contains League Esports data from 2022 and 2023, however we will be filtering out data from 2023 to only focus on competitive that occured in 2022. The overall dataset has a total of 123 columns. After filtering and cleaning, our final dataset for hypothesis tests has a total of 107257 rows, and 11 columns. For Missing Data investigations, we will be using subsets of the original dataframe, at 121010 rows and 4 columns.
+The dataset we will be using will be from Oracle's Elixir. The dataset itself contains League Esports data from 2022 and 2023, however we will be filtering out data from 2023 to only focus on competitive matches that occured in 2022 and only on matches that occured in the Major Leagues. The leagues we will focus on will be all the Tier 1 leagues, as well as the Mid Season Invitational and World Championships. We will not be using data from Tier 2 leagues and smaller tournaments as the skill disparity in those leagues can vary heavily, meaning the match data we receive from those games could heavily influence our model.
 
 **Column Focus and Descriptions**
 
-For our analysis, we will only focus on the columns defined below. All other columns are not as relevant for our needs and will be discarded.
+After cleaning the data, we are left with 2857 games, aka 5714 rows. We will rely on the following columns to build and train our models. These are all metrics that can be obtained 15 minutes into each game. All metrics are focused strictly on statistical measurements and resources acquired in the game.   
 
 | Column Name | Description |
 |:-----------:|:-----------:|
-| gameid | id corresponding the played match |
-| league | the tournament name |
-| result | True if team win False if loss |
-| year | year of tournament |
-| position | the player's role in game |
-| champion | the champion name that a player plays as |
-| kills | number of opponents a player has slain |
-| deaths | number of times a player has died |
-| assists | number of times a player assisted in killing an opponent |
-| ban1 ... ban5| the champion banned within a match|
-| goldat10 | the gold a player or team has 10 minutes into the game |
+| side | `Red` or `Blue` for each team|
+| result | 1 if team win 0 if loss |
+| firstdragon | 1 if team acquired the first dragon 0 elsewise |
+| firstherald | 1 if team acquired first herald 0 etherwise |
+| golddiffat15 | gold difference between both teams at 15 minutes |
+| xpddiffat15 | experience points difference between both teams at 15 minutes |
+| killsat15 | total amount of kills a team has at 15 minutes |
+| deathsat15 | total amount of deaths a team has at 15 minutes |
+| assistsat15 | total assists a team has at 15 minutes | 
+| firstblood | 1 if a team obtained the first kill in the game 0 elsewise |
 
 
-Additionally, we will use two calculated columns we defined.
+Additionally, we will use two extra column we defined from the data.
 
 
 | Column Name | Description |
 |:-----------:|:-----------:|
-| kda | [(kills + assists)/deaths] which is a performance metric |
-| meta | true if a champion is heavily banned false if not |
+| teammates_ahead_at15 | an integer between 0-5 representing the number of teammates with a gold or xp advantage compared to their opponent|
+| turretplatesdiff | the difference in turret plates obtained by a team and their opponents|
+
+**Splitting the Data**
+To train and test our models, we split the data into a 80/20 split for train and test data. For our basline model, we will take the same train and test data and keep the columns used for our model. For the final model, we will use the train and test data with all columns. 
+
+*Side Note*
+We will unfortunately not be focusing on champion matchups or team compositions, as it is beyond the scope of this project and there is not enough time. However, champion matchups and compositions would be interesting to investigate, as League of Legends has over 152 champions, many of which can be classified as early or late game champions. Team comps consisting heavily of early game champions may have a larger advantage over other compositions in objectives or kills. This is something that I will keep in mind in future re-editions of this project.
 
 
-## Data Cleaning & EDA
+## Baseline Model
+For the baseline model, we will start off with a simple `DecisionTreeClassifier` model to predict `result` with 3 attributes. No parameter adjustments were made to the model. The columns of interest here will be `side`, `xpdiffat15`, and `golddiffat15`. 
+
+**Response Variable**: `Result` -- 1 (Win) or 0 (Loss)
+
+**Features**
+
+| Column Name | Feature Type | Encodings |
+|:-----------:|:-----------:|:-----------:|
+| side | Nominal | One Hot Encoded|
+| xpdiffat15 | Quantitative | None |
+| golddiffat15 | Quantitative | None |
+
+`side` was one hot encoded as it is a nominal data type of `Red`s and `Blue`s. All other quantative features were left without adjustments.
+
+Why these features? Gold and xp difference are big factors of the game. Gold helps players purchase more items and increase their damage output while reducing damage taken. The same also apply to xp difference. A higher positive xp difference mea that players can output more damage by leveling up their skills and getting higher base stats (armor, damage, magic reduction, etc). Therefore, these two variables help teams in creating leads and gaps, which could ultimately allow teams to snowball into a victory. `Side` plays a smaller role in this model, however the side a team plays on may allow teams to have a slight advantage over certain objectives. Hence, why `side` is considered in our baseline model. All together, these 3 features form a decent foundation for our baseline model.
+
+### Result
+After training our model and running the test predicitions, our model achieved an accuracy of 0.67104. If we look at it from a model assessment standpoint, this is a terrible model, as this means that we predicted about 67.1% of the game results correctly for our test set. However, in reality, 0.67104 is actually pretty good if we considered the data we used. To reiterate, the whole purpose of this project is to figure out whether it is possible to predict a game's outcome with only game data from the first 15 minutes of the game. Considering each game lasts around and over 30 minutes, we techinally only have data for about the first half of each game. The other half of the game is completely variable, and unknown. Therefore having an accuracy of over 0.50 is impressive given that we barely know data from half the game.
 
 ### Data Cleaning
 
