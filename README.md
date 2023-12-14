@@ -115,7 +115,7 @@ To analyze whether our model performs equally as well across different data grou
 <iframe src="charts/kills_dist.html" width=800 height=600 frameBorder=0></iframe>
 
 ### Framing the Test
-We will run a permutation test for fairness with difference in accuracy.
+We will run a permutation test with 10,000 simulations for fairness with difference in accuracy.
 
 **Null Hypothesis**: The model is fair and the accuracy for teams with greater than 7 kills is the same as teams with less than 7 kills at 15 minutes.
 
