@@ -56,9 +56,6 @@ Additionally, we will use two extra column we defined from the data.
 **Splitting the Data**
 To train and test our models, we split the data into a 80/20 split for train and test data. For our basline model, we will take the same train and test data and keep the columns used for our model. For the final model, we will use the train and test data with all columns. 
 
-*Side Note*
-We will unfortunately not be focusing on champion matchups or team compositions, as it is beyond the scope of this project and there is not enough time. However, champion matchups and compositions would be interesting to investigate, as League of Legends has over 152 champions, many of which can be classified as early or late game champions. Team comps consisting heavily of early game champions may have a larger advantage over other compositions in objectives or kills. This is something that I will keep in mind in future re-editions of this project.
-
 
 ## Baseline Model
 For the baseline model, we will start off with a simple `DecisionTreeClassifier` model to predict `result` with 3 attributes. No parameter adjustments were made to the model. The columns of interest here will be `side`, `xpdiffat15`, and `golddiffat15`. 
@@ -115,7 +112,7 @@ On the base RandomForestClassifier model without any parameters, training it on 
 ## Fairness Analysis
 To analyze whether our model performs equally as well across different data groups, we will run a fairness analysis test on our data. We will attempt check if our model performs better for teams with more than 7 kills within 15 minutes or teams with less kills within 15 minutes. Why 7? In profession League of Legends, players tend to play extremely carefully and together, always weary of where their opponents are. Additionally, kills grant gold bonuses from a range of 150 gold to nearly 1000 (for killing fed enemies) to the slayer and their team. Hence most players would want to avoid giving out free kills to their enemies. We can additionally see from the distribution of kills below, that the median number of kills before 15 minutes hover around 5 kills. This could infer that more kills tend to give a team a bigger advantage in wining, so we'd like to see if our model actually performs better or worse for teams that may have a high amount of kills at 15 minutes.
 
-<iframe src="charts/kda_dist.html" width=800 height=600 frameBorder=0></iframe>
+<iframe src="charts/kills_dist.html" width=800 height=600 frameBorder=0></iframe>
 
 ### Framing the Test
 We will run a permutation test for fairness with difference in accuracy.
@@ -134,3 +131,7 @@ We will run a permutation test for fairness with difference in accuracy.
 From this test, we reject the null, as our p-value, 0.0 is less than the significance level of 0.05. We can conclude that our dataset shows there is a statistically significant difference between the the Accuracy of our model for teams with larger that 7 kills at 15 minutes.
 
 <iframe src="charts/fairness.html" width=800 height=600 frameBorder=0></iframe>
+
+
+## Conclusion
+To wrap up this project, it seems that with enough data 15 minutes into any league game, we are able to predict the outcome of the game semi accuractely. However, this model is still far from perfect as there are still many factors to consider when it comes to analyzing League of Legends game data. For example, because of the scope and timeframe of this project, I was unable to focus on champion matchups or team compositions. However, champion matchups and compositions would be interesting to investigate, as League of Legends has over 152 champions, many of which can be classified as early or late game champions. Team comps consisting heavily of early game champions may have a larger advantage over other compositions in objectives or kills. If I were to improve on this model in the future, these are some ideas that I will keep in mind and implement for future editions. 
